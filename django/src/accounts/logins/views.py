@@ -7,12 +7,37 @@ from django.shortcuts import render, redirect
 from .models import User
 
 class OnlyYouMixin(UserPassesTestMixin):
+    """
+    ユーザー自身しか通さないMIXIN
+    """
     raise_exception = True
 
     def test_func(self):
         # 今ログインしてるユーザーのpkと、そのマイページのpkが同じなら許可
         user = self.request.user
         return user.pk == self.kwargs['pk']
+    
+class OnlyLoginMixin(UserPassesTestMixin):
+    """
+    ログイン中のユーザーしか通さないMIXIN
+    """
+    def test_func(self):
+        # ログインしていないならログインページにリダイレクト
+        return self.request.user.pk!=None
+    
+    def handle_no_permission(self):
+        return redirect('logins:login')
+
+class OnlyLogoutMixin(UserPassesTestMixin):
+    """
+    ログアウト中のユーザーしか通さないMIXIN
+    """
+    raise_exception = True
+
+    def test_func(self):
+        # ログインしているならエラーを発生させる
+        return self.request.user.pk==None
+    
     
 class IndexView(TemplateView):
     """ ホームビュー """
@@ -33,9 +58,11 @@ class SignupView(CreateView):
         """ユーザー作成とログインをしてリダイレクト"""
         try:
             raw_password = form.cleaned_data.get("password")
-            user = form.save()
-            user.set_password(raw_password)# パスワードをハッシュ化してセキュアに
-            user.save()
+            user_name = form.cleaned_data.get("user_name")
+            email = form.cleaned_data.get("email")
+            user= self.model.objects.create_user(user_name=user_name,
+                                                 email=email,
+                                                 password=raw_password)
             login(self.request, user)
             return redirect(self.success_path)
         except:
@@ -58,12 +85,12 @@ class UpdatePasswordView(OnlyYouMixin, PasswordChangeView):
     success_url = reverse_lazy('logins:index')
     template_name = 'update_password.html'
 
-class LoginView(BaseLoginView):
+class LoginView(OnlyLogoutMixin, BaseLoginView):
   """ ログイン用ビュー """
   model = User
   template_name = "login.html"
 
-class LogoutView(BaseLogoutView):
+class LogoutView(OnlyLoginMixin, BaseLogoutView):
     """ ログアウト用ビュー """
     success_url = reverse_lazy("logins:index")
 

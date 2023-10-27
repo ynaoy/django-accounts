@@ -6,11 +6,9 @@ from ..models import User
 def create_default_user(user_name="Test User",
                        email="example@example.com",
                        password="password"):
-  user = User(  user_name=user_name, 
-                email=email,
-              )
-  user.set_password(password)
-  user.save()
+  user= User.objects.create_user(user_name=user_name,
+                                       email=email,
+                                       password=password)
   return user
 
 class UserViewTests(TestCase):
@@ -148,15 +146,14 @@ class UserViewTests(TestCase):
     self.assertContains(response, "Login")
     self.assertContains(response, "Back")
 
-  @skip("未実装")
   def test_login_view_get_with_login(self):
     """
-    既にログインしている時にlogin_viewにGETメソッドを送ったときにリダイレクトされる
+    ログイン状態の時にlogin_viewにGETメソッドを送ったときにリダイレクトされる
     """
     test_user = create_default_user()
     self.client.force_login(test_user)
     response = self.client.get(reverse("logins:login"))
-    self.assertRedirects(response, reverse("logins:index"))
+    self.assertEqual(response.status_code, 403)
 
   def test_login_view_post(self):
     """
@@ -171,10 +168,9 @@ class UserViewTests(TestCase):
     # sessionidが存在すればログインできている
     self.assertTrue(response.cookies.get("sessionid"))
 
-  @skip("未実装")
   def test_logout_view_get_with_not_login(self):
     """
-    ログイン状態でないときにlogout_viewにGETメソッドを送ったらリダイレクトされる
+    ログインしていないときにlogout_viewにGETメソッドを送ったらリダイレクトされる
     """
     response = self.client.get(reverse("logins:logout"))
     self.assertRedirects(response, reverse("logins:login"))
