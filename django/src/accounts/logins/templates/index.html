@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}
+{% if user.is_authenticated %}
+<div class="h1">MyPage</div>
+{% else %}
+<div class="h1">Main</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated %}
+<div class="h2">Welcome {{ user.user_name }} </div>
+<a href="{% url 'logins:update' user.pk%}" class="btn btn-primary">Update</a> 
+<a href="{% url 'logins:update_password' user.pk%}" class="btn btn-primary">Update Password</a> 
+<a href="{% url 'logins:logout' %}" class="btn btn-primary">Logout</a> 
+{% else %}
+<a href="{% url 'logins:signup' %}" class="btn btn-primary">Signup</a>
+<a href="{% url 'logins:login' %}" class="btn btn-primary">Login</a>
+{% endif %}
+{% endblock %}
