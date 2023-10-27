@@ -6,11 +6,9 @@ from ..models import User
 def create_default_user(user_name="Test User",
                        email="example@example.com",
                        password="password"):
-  user = User(  user_name=user_name, 
-                email=email,
-              )
-  user.set_password(password)
-  user.save()
+  user= User.objects.create_user(user_name=user_name,
+                                       email=email,
+                                       password=password)
   return user
 
 class UserViewTests(TestCase):

@@ -33,9 +33,11 @@ class SignupView(CreateView):
         """ユーザー作成とログインをしてリダイレクト"""
         try:
             raw_password = form.cleaned_data.get("password")
-            user = form.save()
-            user.set_password(raw_password)# パスワードをハッシュ化してセキュアに
-            user.save()
+            user_name = form.cleaned_data.get("user_name")
+            email = form.cleaned_data.get("email")
+            user= self.model.objects.create_user(user_name=user_name,
+                                                 email=email,
+                                                 password=raw_password)
             login(self.request, user)
             return redirect(self.success_path)
         except:
